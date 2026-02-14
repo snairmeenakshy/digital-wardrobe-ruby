@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
-import { FiCamera, FiUpload, FiCheck, FiX, FiImage, FiTag, FiPlus, FiRefreshCw, FiVideo, FiVideoOff } from "react-icons/fi";
+import { FiCamera, FiUpload, FiCheck, FiX, FiImage, FiTag, FiPlus, FiRefreshCw, FiVideo, FiVideoOff, FiEdit2, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
+import { useWardrobe } from "../context/WardrobeContext";
 import "../styles/auth.css";
 
 export default function Scan() {
@@ -11,6 +12,26 @@ export default function Scan() {
   const [mode, setMode] = useState("upload"); // "upload" or "camera"
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCategory, setEditedCategory] = useState("");
+  const [editedColor, setEditedColor] = useState("");
+  const [addedToWardrobe, setAddedToWardrobe] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const { addItem } = useWardrobe();
+
+  // Available categories and colors for editing
+  const categories = [
+    "T-Shirt", "Casual Shirt", "Formal Shirt", "Polo Shirt", "Blouse",
+    "Jeans", "Chinos", "Trousers", "Shorts", "Skirt",
+    "Hoodie", "Sweater", "Cardigan", "Jacket", "Blazer", "Coat",
+    "Dress", "Tank Top", "Other"
+  ];
+
+  const colors = [
+    "White", "Black", "Gray", "Navy Blue", "Light Blue", "Dark Blue",
+    "Red", "Pink", "Beige", "Brown", "Cream", "Green", "Yellow", "Other"
+  ];
   
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -162,6 +183,9 @@ export default function Scan() {
     setDetectedItem(null);
     setScanComplete(false);
     setIsScanning(false);
+    setAddedToWardrobe(false);
+    setShowSuccess(false);
+    setIsEditing(false);
   };
 
   const triggerFileInput = () => {
@@ -346,35 +370,112 @@ export default function Scan() {
 
           {scanComplete && detectedItem && (
             <div className="results-card">
+              <div className="demo-disclaimer">
+                <FiAlertCircle />
+                <span>Demo Mode: Results are simulated. Edit below to correct.</span>
+              </div>
+
               <div className="result-header">
                 <FiCheck className="success-icon" />
                 <span>Detection Complete</span>
+                <button 
+                  className="edit-btn"
+                  onClick={() => {
+                    setIsEditing(!isEditing);
+                    setEditedCategory(detectedItem.category);
+                    setEditedColor(detectedItem.color);
+                  }}
+                >
+                  <FiEdit2 /> {isEditing ? "Cancel" : "Edit"}
+                </button>
               </div>
 
               <div className="result-details">
                 <div className="result-item">
                   <span className="result-label">Category</span>
-                  <span className="result-value">{detectedItem.category}</span>
+                  {isEditing ? (
+                    <select 
+                      className="edit-select"
+                      value={editedCategory}
+                      onChange={(e) => setEditedCategory(e.target.value)}
+                    >
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="result-value">{detectedItem.category}</span>
+                  )}
                 </div>
                 <div className="result-item">
                   <span className="result-label">Color</span>
-                  <span className="result-value">{detectedItem.color}</span>
-                </div>
-                <div className="result-item">
-                  <span className="result-label">Confidence</span>
-                  <div className="confidence-bar">
-                    <div
-                      className="confidence-fill"
-                      style={{ width: `${detectedItem.confidence}%` }}
-                    ></div>
-                    <span>{detectedItem.confidence}%</span>
-                  </div>
+                  {isEditing ? (
+                    <select 
+                      className="edit-select"
+                      value={editedColor}
+                      onChange={(e) => setEditedColor(e.target.value)}
+                    >
+                      {colors.map(col => (
+                        <option key={col} value={col}>{col}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="result-value">{detectedItem.color}</span>
+                  )}
                 </div>
               </div>
 
-              <button className="add-to-wardrobe-btn">
-                <FiPlus /> Add to Wardrobe
+              {isEditing && (
+                <button 
+                  className="save-edit-btn"
+                  onClick={() => {
+                    setDetectedItem({
+                      ...detectedItem,
+                      category: editedCategory,
+                      color: editedColor,
+                      confidence: 100
+                    });
+                    setIsEditing(false);
+                  }}
+                >
+                  <FiCheck /> Save Changes
+                </button>
+              )}
+
+              <button 
+                className={`add-to-wardrobe-btn ${addedToWardrobe ? "added" : ""}`}
+                onClick={() => {
+                  if (addedToWardrobe) return;
+                  
+                  addItem({
+                    category: detectedItem.category,
+                    color: detectedItem.color,
+                    image: preview,
+                  });
+                  
+                  setAddedToWardrobe(true);
+                  setShowSuccess(true);
+                  
+                  // Hide success message after 3 seconds
+                  setTimeout(() => {
+                    setShowSuccess(false);
+                  }, 3000);
+                }}
+                disabled={addedToWardrobe}
+              >
+                {addedToWardrobe ? (
+                  <><FiCheckCircle /> Added to Wardrobe</>
+                ) : (
+                  <><FiPlus /> Add to Wardrobe</>
+                )}
               </button>
+
+              {showSuccess && (
+                <div className="success-toast">
+                  <FiCheckCircle />
+                  <span>Item successfully added to your wardrobe!</span>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiCheck, FiX, FiArrowRight, FiCopy } from "react-icons/fi";
+import { FiCheck, FiX, FiArrowRight, FiEdit2, FiSave, FiTrash2 } from "react-icons/fi";
 import "../styles/auth.css";
 
 export default function Laundry() {
@@ -11,6 +11,8 @@ export default function Laundry() {
         "https://i.pinimg.com/1200x/ff/2e/0e/ff2e0e6d4b9dfe51cd1a33a75f74e9b0.jpg",
       status: "Needs Wash",
       wearCount: 4,
+      category: "Casual",
+      color: "Blue",
     },
     {
       id: 2,
@@ -19,6 +21,8 @@ export default function Laundry() {
         "https://i.pinimg.com/1200x/f4/f9/ea/f4f9ea65d906bab7acc90303fb282860.jpg",
       status: "Clean",
       wearCount: 1,
+      category: "Formal",
+      color: "White",
     },
     {
       id: 3,
@@ -27,11 +31,53 @@ export default function Laundry() {
         "https://i.pinimg.com/736x/d7/21/79/d72179ff1a9af377dd7e56d535c0ecc3.jpg",
       status: "Needs Wash",
       wearCount: 5,
+      category: "Casual",
+      color: "Green",
     },
   ]);
 
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [combinedName, setCombinedName] = useState("");
+  const [showEditModal, setShowEditModal] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    category: "",
+    color: "",
+    wearCount: 0
+  });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+
+  const categories = ["Casual", "Formal", "Sports", "Sleepwear", "Other"];
+  const colors = [
+    "White", "Black", "Gray", "Navy Blue", "Light Blue", "Dark Blue",
+    "Red", "Pink", "Beige", "Brown", "Cream", "Green", "Yellow", "Orange", "Purple"
+  ];
+
+  const handleEditClick = (item) => {
+    setEditForm({
+      name: item.name || "",
+      category: item.category || "Casual",
+      color: item.color || "White",
+      wearCount: item.wearCount || 0
+    });
+    setShowEditModal(item.id);
+  };
+
+  const handleSaveEdit = () => {
+    if (showEditModal) {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === showEditModal
+            ? { ...item, ...editForm }
+            : item
+        )
+      );
+      setShowEditModal(null);
+    }
+  };
+
+  const handleDelete = (id) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    setShowDeleteConfirm(null);
+  };
 
   const toggleStatus = (id) => {
     setItems((prev) =>
@@ -68,54 +114,6 @@ export default function Laundry() {
   const cleanItems = items.filter(item => item.status === "Clean");
   const dirtyItems = items.filter(item => item.status === "Needs Wash");
 
-  const addItem = () => {
-    const newItem = {
-      id: items.length + 1,
-      name: `Item ${items.length + 1}`,
-      image: "https://i.pinimg.com/1200x/ff/2e/0e/ff2e0e6d4b9dfe51cd1a33a75f74e9b0.jpg",
-      status: "Needs Wash",
-      wearCount: 0,
-    };
-    setItems([...items, newItem]);
-  };
-
-  const toggleSelectItem = (id) => {
-    setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const combineItems = () => {
-    if (selectedItems.length < 2) {
-      alert("Please select at least 2 items to combine.");
-      return;
-    }
-
-    const selectedItemsList = items.filter((item) => selectedItems.includes(item.id));
-    const totalWear = selectedItemsList.reduce((sum, item) => sum + item.wearCount, 0);
-    const mainStatus = selectedItemsList[0].status;
-
-    // If user didn't provide a name, auto-generate one from selected items
-    const nameToUse = combinedName.trim()
-      ? combinedName.trim()
-      : selectedItemsList.map((i) => i.name).slice(0, 3).join(" + ");
-
-    const newCombinedItem = {
-      id: items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1,
-      name: nameToUse,
-      image: selectedItemsList[0].image,
-      status: mainStatus,
-      wearCount: totalWear,
-    };
-
-    const filteredItems = items.filter((item) => !selectedItems.includes(item.id));
-    setItems([...filteredItems, newCombinedItem]);
-    setSelectedItems([]);
-    setCombinedName("");
-    // quick feedback
-    alert(`Combined ${selectedItemsList.length} items into "${nameToUse}"`);
-  };
-
   return (
     <div className="laundry-page">
       {/* Header */}
@@ -148,36 +146,6 @@ export default function Laundry() {
         </div>
       </div>
 
-      {/* Add Items & Combine Section */}
-      <div className="laundry-add-section">
-        <div className="add-items-prompt">
-          <h2>Add Your Items</h2>
-          <p>Start tracking your wardrobe! Add clothing items to manage their washing status and keep your clothes fresh.</p>
-          <button className="add-item-btn" onClick={addItem}>
-            <FiArrowRight /> Add Item
-          </button>
-        </div>
-
-        <div className="combine-panel">
-          <h3>Combine Items</h3>
-          <p className="combine-sub">Select items from the lists and create a combined set.</p>
-          <div className="combine-controls">
-            <input
-              className="combine-input"
-              value={combinedName}
-              onChange={(e) => setCombinedName(e.target.value)}
-              placeholder="Combined name (e.g. 'Weekend Set')"
-            />
-            <div className="combine-actions">
-              <button className="combine-btn" onClick={combineItems}>
-                <FiCopy /> Combine ({selectedItems.length})
-              </button>
-              <button className="cancel-select-btn" onClick={() => setSelectedItems([])}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Gallery */}
       {dirtyItems.length > 0 && (
         <div className="laundry-section">
@@ -186,17 +154,10 @@ export default function Laundry() {
             {dirtyItems.map((item) => (
               <div
                 key={item.id}
-                className={`laundry-card dirty ${selectedItems.includes(item.id) ? 'selected-item' : ''}`}
+                className={`laundry-card dirty`}
               >
                 <div className="laundry-image-wrapper">
                   <img src={item.image} alt={item.name} />
-                  <button
-                    className={`item-select-btn ${selectedItems.includes(item.id) ? 'active' : ''}`}
-                    onClick={() => toggleSelectItem(item.id)}
-                    aria-label="Select item"
-                  >
-                    {selectedItems.includes(item.id) ? '✓' : '+'}
-                  </button>
                   <div className="status-badge">
                     <FiX /> Needs Wash
                   </div>
@@ -204,16 +165,31 @@ export default function Laundry() {
 
                 <div className="laundry-card-content">
                   <h3>{item.name}</h3>
+                  <p className="item-category-label">{item.category} • {item.color}</p>
                   <div className="wear-count">
                     <span>Worn</span>
                     <strong>{item.wearCount}x</strong>
                   </div>
-                  <button
-                    className="toggle-status-btn"
-                    onClick={() => toggleStatus(item.id)}
-                  >
-                    Mark Clean
-                  </button>
+                  <div className="laundry-actions">
+                    <button
+                      className="toggle-status-btn"
+                      onClick={() => toggleStatus(item.id)}
+                    >
+                      Mark Clean
+                    </button>
+                    <button
+                      className="action-btn edit"
+                      onClick={() => handleEditClick(item)}
+                    >
+                      <FiEdit2 />
+                    </button>
+                    <button
+                      className="action-btn delete"
+                      onClick={() => setShowDeleteConfirm(item.id)}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -228,17 +204,10 @@ export default function Laundry() {
             {cleanItems.map((item) => (
               <div
                 key={item.id}
-                className={`laundry-card clean ${selectedItems.includes(item.id) ? 'selected-item' : ''}`}
+                className={`laundry-card clean`}
               >
                 <div className="laundry-image-wrapper">
                   <img src={item.image} alt={item.name} />
-                  <button
-                    className={`item-select-btn ${selectedItems.includes(item.id) ? 'active' : ''}`}
-                    onClick={() => toggleSelectItem(item.id)}
-                    aria-label="Select item"
-                  >
-                    {selectedItems.includes(item.id) ? '✓' : '+'}
-                  </button>
                   <div className="status-badge">
                     <FiCheck /> Clean
                   </div>
@@ -246,19 +215,126 @@ export default function Laundry() {
 
                 <div className="laundry-card-content">
                   <h3>{item.name}</h3>
+                  <p className="item-category-label">{item.category} • {item.color}</p>
                   <div className="wear-count">
                     <span>Worn</span>
                     <strong>{item.wearCount}x</strong>
                   </div>
-                  <button
-                    className="toggle-status-btn"
-                    onClick={() => toggleStatus(item.id)}
-                  >
-                    Mark Needs Wash
-                  </button>
+                  <div className="laundry-actions">
+                    <button
+                      className="toggle-status-btn"
+                      onClick={() => toggleStatus(item.id)}
+                    >
+                      Mark Needs Wash
+                    </button>
+                    <button
+                      className="action-btn edit"
+                      onClick={() => handleEditClick(item)}
+                    >
+                      <FiEdit2 />
+                    </button>
+                    <button
+                      className="action-btn delete"
+                      onClick={() => setShowDeleteConfirm(item.id)}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(null)}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="edit-modal-header">
+              <FiEdit2 className="modal-icon edit" />
+              <h3>Edit Item</h3>
+            </div>
+            
+            <div className="edit-form">
+              <div className="form-group">
+                <label>Name</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="edit-input"
+                  placeholder="Item name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Category</label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  className="edit-select"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group half">
+                  <label>Color</label>
+                  <select
+                    value={editForm.color}
+                    onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
+                    className="edit-select"
+                  >
+                    {colors.map((color) => (
+                      <option key={color} value={color}>{color}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group half">
+                  <label>Wear Count</label>
+                  <input
+                    type="number"
+                    value={editForm.wearCount}
+                    onChange={(e) => setEditForm({ ...editForm, wearCount: parseInt(e.target.value) || 0 })}
+                    className="edit-input"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="modal-btn cancel" onClick={() => setShowEditModal(null)}>
+                Cancel
+              </button>
+              <button className="modal-btn save" onClick={handleSaveEdit}>
+                <FiSave /> Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <FiTrash2 className="modal-icon" />
+            <h3>Delete this item?</h3>
+            <p>This will remove it from your laundry list.</p>
+            <div className="modal-actions">
+              <button className="modal-btn cancel" onClick={() => setShowDeleteConfirm(null)}>
+                Keep It
+              </button>
+              <button className="modal-btn delete" onClick={() => handleDelete(showDeleteConfirm)}>
+                Yes, Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -61,16 +61,20 @@ export default function Dashboard() {
           {sidebarFeatures.map((item, index) => (
             <div
               key={index}
-              className="sidebar-item"
+              className="sidebar-item clickable"
               onClick={() => {
-                if (item.name === "Calendar") {
-                  navigate("/calendar");
-                }
-                if (item.name === "Combine") {
-                  navigate("/laundry");
-                }
+                const routes = {
+                  "Scan": "/scan",
+                  "Combine": "/combine",
+                  "Calendar": "/calendar",
+                  "Packing Assistant": "/packing",
+                  "For You": "/foryou",
+                  "Explore": "/explore",
+                  "Statistics": "/statistics",
+                  "Settings": "/settings"
+                };
+                if (routes[item.name]) navigate(routes[item.name]);
               }}
-              style={item.name === "Calendar" || item.name === "Combine" ? { cursor: "pointer" } : {}}
             >
               <span className="sidebar-icon">
                 {item.icon}
@@ -110,16 +114,17 @@ export default function Dashboard() {
           {coreFeatures.map((feature, index) => (
             <div
               key={index}
-              className="glass-card"
+              className="glass-card clickable"
               onClick={() => {
-                if (feature.name === "Laundry") {
-                  navigate("/laundry");
-                }
-                if (feature.name === "My Items") {
-                  navigate("/myitems");
-                }
+                const routes = {
+                  "My Items": "/myitems",
+                  "Laundry": "/laundry",
+                  "Family": "/family",
+                  "Partner Matching": "/partner",
+                  "Kids Mode": "/kids"
+                };
+                if (routes[feature.name]) navigate(routes[feature.name]);
               }}
-              style={feature.name === "Laundry" || feature.name === "My Items" ? { cursor: "pointer" } : {}}
             >
               <div className="core-icon">
                 {feature.icon}
