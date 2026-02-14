@@ -66,8 +66,11 @@ export default function Dashboard() {
                 if (item.name === "Calendar") {
                   navigate("/calendar");
                 }
+                if (item.name === "Combine") {
+                  navigate("/laundry");
+                }
               }}
-              style={item.name === "Calendar" ? { cursor: "pointer" } : {}}
+              style={item.name === "Calendar" || item.name === "Combine" ? { cursor: "pointer" } : {}}
             >
               <span className="sidebar-icon">
                 {item.icon}
@@ -112,8 +115,11 @@ export default function Dashboard() {
                 if (feature.name === "Laundry") {
                   navigate("/laundry");
                 }
+                if (feature.name === "My Items") {
+                  navigate("/myitems");
+                }
               }}
-              style={feature.name === "Laundry" ? { cursor: "pointer" } : {}}
+              style={feature.name === "Laundry" || feature.name === "My Items" ? { cursor: "pointer" } : {}}
             >
               <div className="core-icon">
                 {feature.icon}

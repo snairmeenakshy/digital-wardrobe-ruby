@@ -88,13 +88,17 @@ export default function Calendar() {
               const day = index + 1;
               const dateKey = `${currentMonth.getMonth() + 1}-${day}`;
               const hasEvents = events[dateKey]?.length > 0;
+              const isToday =
+                day === today.getDate() &&
+                currentMonth.getMonth() === today.getMonth() &&
+                currentMonth.getFullYear() === today.getFullYear();
 
               return (
                 <div
                   key={day}
                   className={`calendar-day ${selectedDate === dateKey ? "selected" : ""} ${
                     hasEvents ? "has-events" : ""
-                  }`}
+                  } ${isToday ? "today" : ""}`}
                   onClick={() => setSelectedDate(dateKey)}
                 >
                   <span className="day-number">{day}</span>
