@@ -1,4 +1,4 @@
-# Digital Wardrobe
+# FITeek - The Digital Wardrobe
 
 A front-end prototype of a smart digital wardrobe application built with React.  
 It allows users to manage clothing items, explore outfit combinations, and access multiple wardrobe-related features through a structured multi-page interface.
